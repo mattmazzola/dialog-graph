@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { Graph } from 'react-d3-graph';
 
@@ -15,7 +14,7 @@ const myConfig = {
   nodeHighlightBehavior: true,
   node: {
     color: 'lightgreen',
-    size: 120,
+    size: 300,
     highlightStrokeColor: 'blue'
   },
   link: {
@@ -23,62 +22,80 @@ const myConfig = {
   }
 };
 
-// graph event callbacks
-const onClickGraph = function () {
-  window.alert(`Clicked the graph background`);
-};
 
-const onClickNode = function (nodeId: unknown) {
-  window.alert(`Clicked node ${nodeId}`);
-};
-
-const onRightClickNode = function (event: any, nodeId: any) {
-  window.alert(`Right clicked node ${nodeId}`);
-};
-
-const onMouseOverNode = function (nodeId: any) {
-  window.alert(`Mouse over node ${nodeId}`);
-};
-
-const onMouseOutNode = function (nodeId: any) {
-  window.alert(`Mouse out node ${nodeId}`);
-};
-
-const onClickLink = function (source: any, target: any) {
-  window.alert(`Clicked link between ${source} and ${target}`);
-};
-
-const onRightClickLink = function (event: any, source: any, target: any) {
-  window.alert(`Right clicked link between ${source} and ${target}`);
-};
-
-const onMouseOverLink = function (source: any, target: any) {
-  window.alert(`Mouse over in link between ${source} and ${target}`);
-};
-
-const onMouseOutLink = function (source: any, target: any) {
-  window.alert(`Mouse out link between ${source} and ${target}`);
-};
 
 const App: React.FC = () => {
+  const [messages, setMessages] = React.useState<string[]>([])
+  const onClickClear = () => setMessages([])
+  const addMessage = (message: string) => setMessages(ms => [...ms, message])
+  // graph event callbacks
+  const onClickGraph = function () {
+    addMessage(`Clicked the graph background`);
+  };
+
+  const onClickNode = function (nodeId: unknown) {
+    addMessage(`Clicked node ${nodeId}`);
+  };
+
+  const onRightClickNode = function (event: any, nodeId: any) {
+    addMessage(`Right clicked node ${nodeId}`);
+  };
+
+  const onMouseOverNode = function (nodeId: any) {
+    addMessage(`Mouse over node ${nodeId}`);
+  };
+
+  const onMouseOutNode = function (nodeId: any) {
+    addMessage(`Mouse out node ${nodeId}`);
+  };
+
+  const onClickLink = function (source: any, target: any) {
+    addMessage(`Clicked link between ${source} and ${target}`);
+  };
+
+  const onRightClickLink = function (event: any, source: any, target: any) {
+    addMessage(`Right clicked link between ${source} and ${target}`);
+  };
+
+  const onMouseOverLink = function (source: any, target: any) {
+    addMessage(`Mouse over in link between ${source} and ${target}`);
+  };
+
+  const onMouseOutLink = function (source: any, target: any) {
+    addMessage(`Mouse out link between ${source} and ${target}`);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <Graph
-          id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
-          data={data}
-          config={myConfig}
-          onClickNode={onClickNode}
-          onRightClickNode={onRightClickNode}
-          onClickGraph={onClickGraph}
-          onClickLink={onClickLink}
-          onRightClickLink={onRightClickLink}
-          onMouseOverNode={onMouseOverNode}
-          onMouseOutNode={onMouseOutNode}
-          onMouseOverLink={onMouseOverLink}
-          onMouseOutLink={onMouseOutLink}
-        />
+    <div className="app">
+      <header>
+        Graph Header
       </header>
+      <div className="graph">
+        <div>
+          <Graph
+            id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
+            data={data}
+            config={myConfig}
+            // onClickNode={onClickNode}
+            // onRightClickNode={onRightClickNode}
+            // onClickGraph={onClickGraph}
+            // onClickLink={onClickLink}
+            // onRightClickLink={onRightClickLink}
+            // onMouseOverNode={onMouseOverNode}
+            // onMouseOutNode={onMouseOutNode}
+            // onMouseOverLink={onMouseOverLink}
+            // onMouseOutLink={onMouseOutLink}
+          />
+        </div>
+        <div className="commands">
+          <div>
+            <button onClick={onClickClear}>Clear Messages</button>
+          </div>
+          {messages.map(m =>
+            <div>{m}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
