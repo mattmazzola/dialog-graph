@@ -10,6 +10,7 @@ header {
   grid-gap: 1em;
 }
 
-#graph-id-graph-wrapper {
+#graph-id1-graph-wrapper,
+#graph-id2-graph-wrapper {
   border: 1px solid black;
 }
