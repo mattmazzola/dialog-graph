@@ -1,4 +1,5 @@
 import * as crypto from 'crypto'
+import uuid from 'uuid/v4'
 
 export interface Node<T = any> {
     id: string
@@ -31,16 +32,24 @@ export function createDag<T>(
     // Convert each dialog to sequence of nodes connected to children (linked list)
     const dialogsAsNodeLists: Node[][] = dialogs.map(d => getNodes(d))
     const dialogsAsGraphs: Graph[] = dialogsAsNodeLists.map(nodes => convertToGraph(nodes))
-    console.log({ dialogsAsGraphs })
+
+    const dialogsGraph = dialogsAsGraphs.reduce<Graph>((graph, dialogGraph) => {
+        graph.nodes.push(...dialogGraph.nodes)
+        graph.edges.push(...dialogGraph.edges)
+
+        return graph
+    }, {
+        nodes: [],
+        edges: []
+    })
+
+    console.log({ dialogsAsGraphs, dialogsGraph })
 
     // Build up nodes and edges by adding each sequence
     // If there is a matching node, add edge
     // Otherwse ade node and edge
 
-    return {
-        nodes,
-        edges,
-    }
+    return dialogsGraph
 }
 
 const convertToGraph = (nodes: Node[]): Graph => {
@@ -59,3 +68,13 @@ const convertToGraph = (nodes: Node[]): Graph => {
         edges,
     }
 }
+
+export function getNode<T>(data: T): Node<T> {
+    const hash = sha256(JSON.stringify(data));
+    const id = uuid();
+    return {
+      data,
+      hash,
+      id,
+    };
+  }

@@ -36,7 +36,7 @@ const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
 
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   const nodes = dialog.rounds
-    .map(round => {
+    .flatMap(round => {
       // Convert each round to nodes
 
       // First node is extrator + scorer
@@ -47,30 +47,14 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
         : ''
 
       const data = {
-        text: `${extractorText} ${firstScorerText}`
+        text: `${dialog.trainDialogId} ${extractorText} ${firstScorerText}`
       }
-
-      const hash = graph.sha256(JSON.stringify(data))
-      const id = uuid()
-
-      const firstNode: graph.Node = {
-        data,
-        hash,
-        id,
-      }
-
+      const firstNode: graph.Node = graph.getNode(data)
       const otherNodes = round.scorerSteps.slice(1).map<graph.Node>(ss => {
         const data = {
-          text: ss.labelAction!
+          text: `${dialog.trainDialogId} ${ss.labelAction!}`
         }
-        const hash = graph.sha256(JSON.stringify(data))
-        const id = uuid()
-
-        return {
-          data,
-          hash,
-          id,
-        }
+        return graph.getNode(data)
       })
 
       const roundNodes: graph.Node[] = [
@@ -80,15 +64,12 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
 
       return roundNodes
     })
-    .reduce((a, b) => [...a, ...b], [])
 
   return nodes
 }
 
-
-
 const App: React.FC = () => {
-  // const [data3, setData3] = React.useState<rd3g.IData>()
+  const [data3, setData3] = React.useState<rd3g.IData>(data2)
 
   React.useEffect(() => {
     const dag = graph.createDag(
@@ -97,15 +78,18 @@ const App: React.FC = () => {
     )
 
     const rd3graph: rd3g.IData = {
-      nodes: dag.nodes,
+      nodes: dag.nodes
+        .map<rd3g.INode>(n => ({
+          id: n.hash,
+        })),
       links: dag.edges
         .map<rd3g.ILink>(e => ({
-          source: e.vertexA.id,
-          target: e.vertexB.id,
+          source: e.vertexA.hash,
+          target: e.vertexB.hash,
         }))
     }
 
-    // setData3(rd3graph)
+    setData3(rd3graph)
   }, [])
 
   return (
@@ -126,7 +110,7 @@ const App: React.FC = () => {
         <div>
           <Graph
             id="graph-id2"
-            data={data2}
+            data={data3}
             config={myConfig}
           />
         </div>
@@ -136,3 +120,6 @@ const App: React.FC = () => {
 }
 
 export default App;
+
+
+
