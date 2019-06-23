@@ -49,12 +49,12 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
       const data = {
         text: `${dialog.trainDialogId} ${extractorText} ${firstScorerText}`
       }
-      const firstNode: graph.Node = graph.getNode(data)
+      const firstNode = graph.getNode(data, dialog.trainDialogId)
       const otherNodes = round.scorerSteps.slice(1).map<graph.Node>(ss => {
         const data = {
           text: `${dialog.trainDialogId} ${ss.labelAction!}`
         }
-        return graph.getNode(data)
+        return graph.getNode(data, dialog.trainDialogId)
       })
 
       const roundNodes: graph.Node[] = [
@@ -69,27 +69,33 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
 }
 
 const App: React.FC = () => {
-  const [data3, setData3] = React.useState<rd3g.IData>(data2)
+  const [data, setData] = React.useState<rd3g.IData[]>([data1])
 
   React.useEffect(() => {
-    const dag = graph.createDag(
-      dialogs,
+    const graphs = dialogs.map(d => graph.createDag(
+      [d],
       getNodes,
-    )
+    ))
 
-    const rd3graph: rd3g.IData = {
-      nodes: dag.nodes
+    const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => {
+      const nodes = g.nodes
         .map<rd3g.INode>(n => ({
           id: n.hash,
-        })),
-      links: dag.edges
+        }))
+
+      const links = g.edges
         .map<rd3g.ILink>(e => ({
           source: e.vertexA.hash,
           target: e.vertexB.hash,
         }))
-    }
 
-    setData3(rd3graph)
+      return {
+        nodes,
+        links,
+      }
+    })
+
+    setData(rd3graphs)
   }, [])
 
   return (
@@ -98,23 +104,22 @@ const App: React.FC = () => {
         Graph Header
       </header>
       <div className="graph">
-        <div>
+        <Graph
+          id="graph-id09"
+          data={data1}
+          config={myConfig}
+        />
+      </div>
+      {data.map((d, i) =>
+        <div className="graph">
           <Graph
-            id="graph-id1"
-            data={data1}
+            id={`graph-id${i}`}
+            data={d}
             config={myConfig}
           />
         </div>
-      </div>
-      <div className="graph">
-        <div>
-          <Graph
-            id="graph-id2"
-            data={data3}
-            config={myConfig}
-          />
-        </div>
-      </div>
+      )}
+
     </div>
   );
 }

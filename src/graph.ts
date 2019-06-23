@@ -69,8 +69,8 @@ const convertToGraph = (nodes: Node[]): Graph => {
     }
 }
 
-export function getNode<T>(data: T): Node<T> {
-    const hash = sha256(JSON.stringify(data));
+export function getNode<T>(data: T, prefix: string = ''): Node<T> {
+    const hash = `${prefix}-${sha256(JSON.stringify(data))}`;
     const id = uuid();
     return {
       data,

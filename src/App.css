@@ -5,12 +5,5 @@ header {
 }
 
 .graph {
-  display: grid;
-  grid-template: auto / 60% 40%;
-  grid-gap: 1em;
-}
-
-#graph-id1-graph-wrapper,
-#graph-id2-graph-wrapper {
   border: 1px solid black;
 }
