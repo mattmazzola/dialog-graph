@@ -32,8 +32,6 @@ const myConfig = {
   }
 };
 
-const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
-
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   const nodes = dialog.rounds
     .flatMap(round => {
@@ -68,41 +66,48 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   return nodes
 }
 
+const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
+const graphs = dialogs.map(d => graph.createDag(
+  [d],
+  getNodes,
+))
+
+const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => {
+  const nodes = g.nodes
+    .map<rd3g.INode>(n => ({
+      id: n.hash,
+    }))
+
+  const links = g.edges
+    .map<rd3g.ILink>(e => ({
+      source: e.vertexA.hash,
+      target: e.vertexB.hash,
+    }))
+
+  return {
+    nodes,
+    links,
+  }
+})
+
+
 const App: React.FC = () => {
-  const [data, setData] = React.useState<rd3g.IData[]>([data1])
-
-  React.useEffect(() => {
-    const graphs = dialogs.map(d => graph.createDag(
-      [d],
-      getNodes,
-    ))
-
-    const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => {
-      const nodes = g.nodes
-        .map<rd3g.INode>(n => ({
-          id: n.hash,
-        }))
-
-      const links = g.edges
-        .map<rd3g.ILink>(e => ({
-          source: e.vertexA.hash,
-          target: e.vertexB.hash,
-        }))
-
-      return {
-        nodes,
-        links,
-      }
-    })
-
-    setData(rd3graphs)
-  }, [])
+  const [data, setData] = React.useState<rd3g.IData[]>(rd3graphs)
 
   return (
     <div className="app">
       <header>
         Graph Header
       </header>
+      {graphs.map(g => {
+        return (
+          <div className="fake-graph">
+            <div>Graph:</div>
+            {g.nodes.map(n =>
+              <div>{n.data.text}</div>)}
+          </div>
+        )
+      })}
       <div className="graph">
         <Graph
           id="graph-id09"
