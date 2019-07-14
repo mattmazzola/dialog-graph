@@ -5,6 +5,7 @@ import * as rd3g from './reactd3types'
 import * as graph from './graph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
+import DialogGraph from './DialogGraph'
 
 // graph payload (with minimalist structure)
 const data1: rd3g.IData = {
@@ -151,6 +152,8 @@ const App: React.FC = () => {
           />
         </div>
       )}
+
+      <DialogGraph />
 
     </div>
   );
