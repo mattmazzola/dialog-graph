@@ -22,7 +22,7 @@ export function sha256(s: string) {
     return crypto.createHash('sha256').update(s).digest('hex')
 }
 
-export function createDag<T>(
+export function createDagFromNodes<T>(
     dialogs: T[],
     getNodes: (dialog: T) => Node[],
 ): Graph {
@@ -70,7 +70,7 @@ const convertToGraph = (nodes: Node[]): Graph => {
 }
 
 export function getNode<T>(data: T, prefix: string = ''): Node<T> {
-    const hash = `${prefix}-${sha256(JSON.stringify(data))}`;
+    const hash = `${prefix}`// `${prefix}-${sha256(JSON.stringify(data))}`;
     const id = uuid();
     return {
       data,

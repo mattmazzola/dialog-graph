@@ -5,7 +5,6 @@ import * as rd3g from './reactd3types'
 import * as graph from './graph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
-import uuid from 'uuid/v4'
 
 // graph payload (with minimalist structure)
 const data1: rd3g.IData = {
@@ -32,28 +31,34 @@ const myConfig = {
   }
 };
 
+ 
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
+  let nodeNumber = 0
   const nodes = dialog.rounds
-    .flatMap(round => {
+    .flatMap((round, i) => {
       // Convert each round to nodes
 
       // First node is extrator + scorer
-      const extractorText = round.extractorStep.textVariations.map(tv => tv.text).join(' ')
+      const extractorText = round.extractorStep.textVariations
+        .map(tv => tv.text)
+        .join(' ')
       const firstScorerStep = round.scorerSteps[0]
       const firstScorerText = firstScorerStep
         ? firstScorerStep.labelAction!
         : ''
 
       const data = {
-        text: `${dialog.trainDialogId} ${extractorText} ${firstScorerText}`
+        text: `${nodeNumber++} ${firstScorerText} ${extractorText} `
       }
-      const firstNode = graph.getNode(data, dialog.trainDialogId)
-      const otherNodes = round.scorerSteps.slice(1).map<graph.Node>(ss => {
-        const data = {
-          text: `${dialog.trainDialogId} ${ss.labelAction!}`
-        }
-        return graph.getNode(data, dialog.trainDialogId)
-      })
+      const firstNode = graph.getNode(data, data.text)
+      const otherNodes = round.scorerSteps
+        .slice(1)
+        .map<graph.Node>(ss => {
+          const data = {
+            text: `${nodeNumber++} ${dialog.trainDialogId} ${ss.labelAction!}`
+          }
+          return graph.getNode(data, data.text)
+        })
 
       const roundNodes: graph.Node[] = [
         firstNode,
@@ -66,16 +71,15 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   return nodes
 }
 
-const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
-const graphs = dialogs.map(d => graph.createDag(
-  [d],
-  getNodes,
-))
-
-const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => {
+const createDataFromGraph = (g: graph.Graph): rd3g.IData => {
   const nodes = g.nodes
     .map<rd3g.INode>(n => ({
       id: n.hash,
+      data: n.data,
+      size: 1000,
+      fontSize: 300,
+      symbolType: "star",
+      labelProperty: 'labelProperty'
     }))
 
   const links = g.edges
@@ -88,26 +92,49 @@ const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => {
     nodes,
     links,
   }
+}
+
+const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
+const graphs = dialogs.map(d => {
+  const g = graph.createDagFromNodes(
+    [d],
+    getNodes,
+  )
+  return {
+    graph: g,
+    data: createDataFromGraph(g)
+  }
 })
 
+const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => createDataFromGraph(g.graph))
 
 const App: React.FC = () => {
-  const [data, setData] = React.useState<rd3g.IData[]>(rd3graphs)
-
   return (
     <div className="app">
       <header>
         Graph Header
       </header>
-      {graphs.map(g => {
-        return (
-          <div className="fake-graph">
-            <div>Graph:</div>
-            {g.nodes.map(n =>
-              <div>{n.data.text}</div>)}
-          </div>
-        )
-      })}
+      <div className="graphs">
+        {graphs.map((g, i) => {
+          return (
+            <div className="fake-graph">
+              <div>Graph:</div>
+              <div className="fake">
+
+                {g.graph.nodes.map(n =>
+                  <div>{n.data.text}</div>)}
+              </div>
+              <div className="actual">
+                <Graph
+                  id={`graph-pair-${i}`}
+                  data={g.data}
+                  config={myConfig}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
       <div className="graph">
         <Graph
           id="graph-id09"
@@ -115,7 +142,7 @@ const App: React.FC = () => {
           config={myConfig}
         />
       </div>
-      {data.map((d, i) =>
+      {rd3graphs.map((d, i) =>
         <div className="graph">
           <Graph
             id={`graph-id${i}`}
