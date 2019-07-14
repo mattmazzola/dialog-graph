@@ -3,6 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import dagreD3 from 'dagre-d3'
 import * as d3 from 'd3'
+import uuid from 'uuid/v4'
+
 
 export type Props = {
     graph: {
@@ -14,7 +16,11 @@ export type Props = {
     }
 }
 
+const guid = uuid().substring(0, 4)
+console.log({ guid })
+
 const App: React.FC<Props> = ({ graph }) => {
+
     React.useEffect(() => {
         // Create the input graph
         const g = new dagreD3.graphlib.Graph()
@@ -38,7 +44,7 @@ const App: React.FC<Props> = ({ graph }) => {
         }
 
         // Set up an SVG group so that we can translate the final graph.
-        const svg = d3.select("svg#svg-canvas")
+        const svg = d3.select(`svg#svg-canvas`)
         const svgGroup = svg.append("g")
 
         // Set up zoom support
@@ -61,12 +67,7 @@ const App: React.FC<Props> = ({ graph }) => {
 
     return (
         <div>
-            <header>
-                <h1>Dagre React</h1>
-            </header>
-            <div>
-                <svg id="svg-canvas" width={960} height={600}></svg>
-            </div>
+            <svg id="svg-canvas" width={960} height={600}></svg>
         </div>
     );
 }

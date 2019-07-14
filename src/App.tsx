@@ -68,7 +68,7 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   return nodes
 }
 
-const createDataFromGraph = (g: graph.Graph): rd3g.IData => {
+const createReactD3GraphDataFromGraph = (g: graph.Graph): rd3g.IData => {
   const nodes = g.nodes
     .map<rd3g.INode>(n => ({
       id: n.hash,
@@ -99,11 +99,24 @@ const graphs = dialogs.map(d => {
   )
   return {
     graph: g,
-    data: createDataFromGraph(g)
+    data: createReactD3GraphDataFromGraph(g)
   }
 })
 
-const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => createDataFromGraph(g.graph))
+const createDagreGraphFromGraph  = (g: graph.Graph): GraphProps => {
+  const nodes: any[] = []
+  const edges: any[] = []
+
+  return {
+    graph: {
+      nodes,
+      edges,
+    }
+  }
+}
+
+const rd3graphs = graphs.map(g => createReactD3GraphDataFromGraph(g.graph))
+const dagreD3graphs = graphs.map(g => createDagreGraphFromGraph(g.graph))
 
 const graphProps: GraphProps = {
   graph: {
@@ -187,12 +200,12 @@ const App: React.FC = () => {
       <div className="graphs">
         {graphs.map((g, i) => {
           return (
-            <div className="fake-graph">
+            <div key ={i} className="fake-graph">
               <div>Graph:</div>
               <div className="fake">
 
-                {g.graph.nodes.map(n =>
-                  <div>{n.data.text}</div>)}
+                {g.graph.nodes.map((n, j) =>
+                  <div key={j}>{n.data.text}</div>)}
               </div>
               <div className="actual">
                 <Graph
@@ -213,7 +226,7 @@ const App: React.FC = () => {
         />
       </div>
       {rd3graphs.map((d, i) =>
-        <div className="graph">
+        <div key={i} className="graph">
           <Graph
             id={`graph-id${i}`}
             data={d}
@@ -222,6 +235,12 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* <h2>Generated Dagre Graphs D3</h2>
+      {dagreD3graphs.map((graph, i) =>
+          <DialogGraph key={i} graph={graph.graph} />
+      )} */}
+
+      <h1>Static Dialog Graph</h1>
       <DialogGraph graph={graphProps.graph} />
     </div>
   );
