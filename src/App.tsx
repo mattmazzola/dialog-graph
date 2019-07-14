@@ -5,15 +5,11 @@ import * as rd3g from './reactd3types'
 import * as graph from './graph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
-import DialogGraph from './DialogGraph'
+import DialogGraph, { Props as GraphProps } from './DialogGraph'
+import * as dagreD3 from 'dagre-d3'
 
 // graph payload (with minimalist structure)
 const data1: rd3g.IData = {
-  nodes: [{ id: 'Harry' }, { id: 'Sally' }, { id: 'Alice' }],
-  links: [{ source: 'Harry', target: 'Sally' }, { source: 'Harry', target: 'Alice' }]
-};
-
-const data2: rd3g.IData = {
   nodes: [{ id: 'Harry' }, { id: 'Sally' }, { id: 'Alice' }],
   links: [{ source: 'Harry', target: 'Sally' }, { source: 'Harry', target: 'Alice' }]
 };
@@ -32,7 +28,7 @@ const myConfig = {
   }
 };
 
- 
+
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   let nodeNumber = 0
   const nodes = dialog.rounds
@@ -109,6 +105,79 @@ const graphs = dialogs.map(d => {
 
 const rd3graphs: rd3g.IData[] = graphs.map<rd3g.IData>(g => createDataFromGraph(g.graph))
 
+const graphProps: GraphProps = {
+  graph: {
+    nodes: [
+      {
+        id: 'name-0',
+        label: { label: "Label - 0", class: "myclass anotherclass" },
+      }, {
+        id: 'name-1',
+        label: { label: "Label - 1", class: "myclass anotherclass" },
+      }, {
+        id: 'name-2',
+        label: { label: "Label - 2", class: "myclass anotherclass" },
+      }, {
+        id: 'name-3',
+        label: { label: "Label - 3", class: "myclass anotherclass" },
+      }, {
+        id: 'name-4',
+        label: { label: "Label - 4", class: "myclass anotherclass" },
+      }, {
+        id: 'name-5',
+        label: { label: "Label - 5", class: "myclass anotherclass" },
+      }, {
+        id: 'name-6',
+        label: { label: "Label - 6", class: "myclass anotherclass" },
+      }, {
+        id: 'name-7',
+        label: { label: "Label - 7", class: "myclass anotherclass" },
+      }, {
+        id: 'name-8',
+        label: { label: "Label - 8", class: "myclass anotherclass" },
+      }, {
+        id: 'name-9',
+        label: { label: "Label - 9", class: "myclass anotherclass" },
+      }, {
+        id: 'name-10',
+        label: { label: "Label - 10", class: "myclass anotherclass" },
+      }, {
+        id: 'name-11',
+        label: { label: "Label - 11", class: "myclass anotherclass" },
+      }, {
+        id: 'name-12',
+        label: { label: "Label - 12", class: "myclass anotherclass" },
+      }, {
+        id: 'name-13',
+        label: { label: "Label - 13", class: "myclass anotherclass" },
+      }, {
+        id: 'name-14',
+        label: { label: "Label - 14", class: "myclass anotherclass" },
+      }, {
+        id: 'name-15',
+        label: { label: "Label - 15", class: "myclass anotherclass" },
+      },
+    ],
+    edges: [
+      ['name-2', 'name-3'],
+      ['name-1', 'name-2'],
+      ['name-6', 'name-7'],
+      ['name-5', 'name-6'],
+      ['name-9', 'name-10'],
+      ['name-8', 'name-9'],
+      ['name-11', 'name-12'],
+      ['name-8', 'name-11'],
+      ['name-5', 'name-8'],
+      ['name-1', 'name-5'],
+      ['name-13', 'name-14'],
+      ['name-1', 'name-13'],
+      ['name-0', 'name-1'],
+      ['name-3', 'name-6'],
+      ['name-10', 'name-12'],
+    ]
+  }
+}
+
 const App: React.FC = () => {
   return (
     <div className="app">
@@ -153,8 +222,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <DialogGraph />
-
+      <DialogGraph graph={graphProps.graph} />
     </div>
   );
 }
