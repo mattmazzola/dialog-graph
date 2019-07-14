@@ -16,10 +16,8 @@ export type Props = {
     }
 }
 
-const guid = uuid().substring(0, 4)
-console.log({ guid })
-
 const App: React.FC<Props> = ({ graph }) => {
+    const [guid] = React.useState(() => uuid().substring(0, 4))
 
     React.useEffect(() => {
         // Create the input graph
@@ -44,7 +42,7 @@ const App: React.FC<Props> = ({ graph }) => {
         }
 
         // Set up an SVG group so that we can translate the final graph.
-        const svg = d3.select(`svg#svg-canvas`)
+        const svg = d3.select(`svg#svg${guid}`)
         const svgGroup = svg.append("g")
 
         // Set up zoom support
@@ -67,7 +65,7 @@ const App: React.FC<Props> = ({ graph }) => {
 
     return (
         <div>
-            <svg id="svg-canvas" width={960} height={600}></svg>
+            <svg id={`svg${guid}`} width={960} height={600}></svg>
         </div>
     );
 }

@@ -103,9 +103,20 @@ const graphs = dialogs.map(d => {
   }
 })
 
-const createDagreGraphFromGraph  = (g: graph.Graph): GraphProps => {
-  const nodes: any[] = []
-  const edges: any[] = []
+const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
+  const nodes: any[] = [
+    {
+      id: 'name-0',
+      label: { label: "Label - 0", class: "myclass anotherclass" },
+    },
+    {
+      id: 'name-1',
+      label: { label: "Label - 1", class: "myclass anotherclass" },
+    },
+  ]
+  const edges: any[] = [
+    ['name-0', 'name-1']
+  ]
 
   return {
     graph: {
@@ -200,7 +211,7 @@ const App: React.FC = () => {
       <div className="graphs">
         {graphs.map((g, i) => {
           return (
-            <div key ={i} className="fake-graph">
+            <div key={i} className="fake-graph">
               <div>Graph:</div>
               <div className="fake">
 
@@ -235,13 +246,17 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* <h2>Generated Dagre Graphs D3</h2>
+      <h2>Generated Dagre Graphs D3</h2>
       {dagreD3graphs.map((graph, i) =>
-          <DialogGraph key={i} graph={graph.graph} />
-      )} */}
+        <div key={i} className="graph">
+          <DialogGraph graph={graph.graph} />
+        </div>
+      )}
 
       <h1>Static Dialog Graph</h1>
-      <DialogGraph graph={graphProps.graph} />
+      <div className="graph">
+        <DialogGraph graph={graphProps.graph} />
+      </div>
     </div>
   );
 }
