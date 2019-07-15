@@ -1,93 +1,59 @@
-import React from 'react';
-import './App.css';
-import { Graph } from 'react-d3-graph';
-import * as rd3g from './reactd3types'
+import React from 'react'
+import './App.css'
 import * as graph from './graph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
 import DialogGraph, { Props as GraphProps } from './DialogGraph'
-import * as dagreD3 from 'dagre-d3'
-
-// graph payload (with minimalist structure)
-const data1: rd3g.IData = {
-  nodes: [{ id: 'Harry' }, { id: 'Sally' }, { id: 'Alice' }],
-  links: [{ source: 'Harry', target: 'Sally' }, { source: 'Harry', target: 'Alice' }]
-};
-
-// the graph configuration, you only need to pass down properties
-// that you want to override, otherwise default ones will be used
-const myConfig = {
-  nodeHighlightBehavior: true,
-  node: {
-    color: 'lightgreen',
-    size: 300,
-    highlightStrokeColor: 'blue'
-  },
-  link: {
-    highlightColor: 'lightblue'
-  }
-};
-
 
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   let nodeNumber = 0
   const nodes = dialog.rounds
-    .flatMap((round, i) => {
+    .map((round, i) => {
       // Convert each round to nodes
 
       // First node is extrator + scorer
       const extractorText = round.extractorStep.textVariations
         .map(tv => tv.text)
-        .join(' ')
-      const firstScorerStep = round.scorerSteps[0]
-      const firstScorerText = firstScorerStep
-        ? firstScorerStep.labelAction!
-        : ''
+        .join('\n    ')
+
+      const scoreStepsText = round.scorerSteps
+        .map(ss => ss.labelAction!)
+        .join('\n    ')
 
       const data = {
-        text: `${nodeNumber++} ${firstScorerText} ${extractorText} `
+        text: `Node Index: ${nodeNumber++}
+Extractor Step:
+    ${extractorText}
+Scorer Step:
+    ${scoreStepsText}`
       }
-      const firstNode = graph.getNode(data, data.text)
-      const otherNodes = round.scorerSteps
-        .slice(1)
-        .map<graph.Node>(ss => {
-          const data = {
-            text: `${nodeNumber++} ${dialog.trainDialogId} ${ss.labelAction!}`
-          }
-          return graph.getNode(data, data.text)
-        })
 
-      const roundNodes: graph.Node[] = [
-        firstNode,
-        ...otherNodes,
-      ]
+      const node = graph.getNode(data, data.text)
 
-      return roundNodes
+      return node
     })
 
   return nodes
 }
 
-const createReactD3GraphDataFromGraph = (g: graph.Graph): rd3g.IData => {
-  const nodes = g.nodes
-    .map<rd3g.INode>(n => ({
-      id: n.hash,
-      data: n.data,
-      size: 1000,
-      fontSize: 300,
-      symbolType: "star",
-      labelProperty: 'labelProperty'
-    }))
+const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
+  const nodes = g.nodes.map(n => (
+    {
+      id: n.id,
+      label: {
+        label: n.data.text,
+        class: 'myclass anotherclass'
+      }
+    }
+  ))
 
-  const links = g.edges
-    .map<rd3g.ILink>(e => ({
-      source: e.vertexA.hash,
-      target: e.vertexB.hash,
-    }))
+  const edges: any[] = g.edges.map(e => [e.vertexA.id, e.vertexB.id])
 
   return {
-    nodes,
-    links,
+    graph: {
+      nodes,
+      edges,
+    }
   }
 }
 
@@ -98,36 +64,10 @@ const graphs = dialogs.map(d => {
     getNodes,
   )
   return {
-    graph: g,
-    data: createReactD3GraphDataFromGraph(g)
+    genericGraph: g,
+    dagreGraph: createDagreGraphFromGraph(g)
   }
 })
-
-const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
-  const nodes: any[] = [
-    {
-      id: 'name-0',
-      label: { label: "Label - 0", class: "myclass anotherclass" },
-    },
-    {
-      id: 'name-1',
-      label: { label: "Label - 1", class: "myclass anotherclass" },
-    },
-  ]
-  const edges: any[] = [
-    ['name-0', 'name-1']
-  ]
-
-  return {
-    graph: {
-      nodes,
-      edges,
-    }
-  }
-}
-
-const rd3graphs = graphs.map(g => createReactD3GraphDataFromGraph(g.graph))
-const dagreD3graphs = graphs.map(g => createDagreGraphFromGraph(g.graph))
 
 const graphProps: GraphProps = {
   graph: {
@@ -208,54 +148,19 @@ const App: React.FC = () => {
       <header>
         Graph Header
       </header>
-      <div className="graphs">
-        {graphs.map((g, i) => {
-          return (
-            <div key={i} className="fake-graph">
-              <div>Graph:</div>
-              <div className="fake">
-
-                {g.graph.nodes.map((n, j) =>
-                  <div key={j}>{n.data.text}</div>)}
-              </div>
-              <div className="actual">
-                <Graph
-                  id={`graph-pair-${i}`}
-                  data={g.data}
-                  config={myConfig}
-                />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div className="graph">
-        <Graph
-          id="graph-id09"
-          data={data1}
-          config={myConfig}
-        />
-      </div>
-      {rd3graphs.map((d, i) =>
-        <div key={i} className="graph">
-          <Graph
-            id={`graph-id${i}`}
-            data={d}
-            config={myConfig}
-          />
-        </div>
-      )}
 
       <h2>Generated Dagre Graphs D3</h2>
-      {dagreD3graphs.map((graph, i) =>
-        <div key={i} className="graph">
-          <DialogGraph graph={graph.graph} />
-        </div>
-      )}
+      <div className="graphs">
+        {graphs.map((graph, i) =>
+          <div key={i} className="graph">
+            <DialogGraph graph={graph.dagreGraph.graph} />
+          </div>
+        )}
+      </div>
 
       <h1>Static Dialog Graph</h1>
       <div className="graph">
-        <DialogGraph graph={graphProps.graph} />
+        <DialogGraph graph={graphProps.graph} width={600} />
       </div>
     </div>
   );
