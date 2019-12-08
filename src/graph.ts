@@ -30,30 +30,52 @@ export function sha256(s: string) {
  */
 export function createDagFromNodes<T>(
     dialogs: T[],
-    getNodes: (dialog: T) => Node[],
+    getNodes: <R>(dialog: T) => Node<R>[],
+    // TODO: Use generic typing to constrain to R from above?
+    mergeNodeData: (n1: Node<any>, n2: Node<any>) => Node<any>
 ): Graph {
     // Convert each dialog to sequence of nodes connected to children (linked list)
-    const dialogsAsNodeLists: Node[][] = dialogs.map(d => getNodes(d))
-    const dialogsAsGraphs: Graph[] = dialogsAsNodeLists.map(nodes => convertToGraph(nodes))
+    const dialogsAsNodeLists = dialogs.map(d => getNodes(d))
+    const dialogsAsGraphs = dialogsAsNodeLists.map(nodes => convertToGraph(nodes))
 
-    const initialGraph: Graph = {
+    const mergedGraph: Graph = {
         nodes: [],
         edges: [],
     }
 
-    // Build up nodes and edges by adding each sequence
-    // If there is a matching node, add edge
-    // Otherwise add node and edge
-    const dialogsGraph = dialogsAsGraphs.reduce<Graph>((graph, dialogGraph) => {
-        graph.nodes.push(...dialogGraph.nodes)
-        graph.edges.push(...dialogGraph.edges)
 
-        return graph
-    }, initialGraph)
+    // Add each graph to existing graph
+    for (const dialogGraph of dialogsAsGraphs) {
 
-    console.log({ dialogsAsGraphs, dialogsGraph })
+        // Build up nodes and edges by adding each sequence
+        // If there is a matching node, add edge
+        for (const node of dialogGraph.nodes) {
+            const matchingNode = mergedGraph.nodes.find(n => n.hash === node.hash)
 
-    return dialogsGraph
+            if (matchingNode) {
+                // Rewrite all edges TO the current node to the matching node
+                dialogGraph.edges
+                    .filter(e => e.vertexB.id === node.id)
+                    .forEach(e => e.vertexB = matchingNode)
+
+                // Rewrite all edges FROM the current node to come FROM the matching node
+                dialogGraph.edges
+                    .filter(e => e.vertexA.id === node.id)
+                    .forEach(e => e.vertexA = matchingNode)
+
+                // Remove the matching node from original graph since all edges now use existing graph
+                dialogGraph.nodes = dialogGraph.nodes.filter(n => n.id !== matchingNode.id)
+
+                // Merge data from node into matching/existing node
+                 mergeNodeData(matchingNode, node)
+            }
+        }
+
+        mergedGraph.nodes.push(...dialogGraph.nodes)
+        mergedGraph.edges.push(...dialogGraph.edges)
+    }
+
+    return mergedGraph
 }
 
 /**
@@ -103,9 +125,8 @@ export const combineGraphs = (graphs: Graph[]): Graph => {
  * @param data Node Data
  * @param prefix as
  */
-export function getNode<T>(data: T, prefix: string = ''): Node<T> {
-    // const hash = `${prefix}`
-    const hash = `${prefix}-${sha256(JSON.stringify(data))}`
+export function getNode<T>(data: T, hashData: object): Node<T> {
+    const hash = sha256(JSON.stringify(hashData))
     const id = uuid()
     return {
         data,

@@ -5,41 +5,37 @@ import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
 import DialogGraph, { Props as GraphProps } from './DialogGraph'
 
+
+const getHashDataFromTrainRound = (round: CLM.TrainRound): object => {
+  return {
+    filledEntityIds: round.scorerSteps[0].input.filledEntities.map(fe => fe.entityId),
+    scorerActionsIds: round.scorerSteps.flatMap(ss => ss.labelAction!),
+  }
+}
+
 const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
-  let nodeNumber = 0
   const nodes = dialog.rounds
     .map((round, i) => {
       // Convert each round to node
 
-      // First node is extractor + scorer
-      const extractorText = round.extractorStep.textVariations
-        .map(tv => tv.text)
-        .join('\n    ')
+      // Extract data which makes node unique to object to be hashed
+      const hashData = getHashDataFromTrainRound(round)
+      const node = graph.getNode(round, hashData)
 
-      const scoreStepsText = round.scorerSteps
-        .map(ss => ss.labelAction!)
-        .join('\n    ')
+      console.log(`Node: `, round.extractorStep.textVariations.map(tv => tv.text), hashData, node)
 
-      const data = {
-        text: `Node Index: ${nodeNumber++}
-Extractor Step:
-    ${extractorText}
-Scorer Step:
-    ${scoreStepsText}`
-      }
-
-      return graph.getNode(data, '')//data.text)
+      return node
     })
 
   return nodes
 }
 
-const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
+const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => string): GraphProps => {
   const nodes = g.nodes.map(n => (
     {
       id: n.id,
       label: {
-        label: n.data.text,
+        label: getLabel(n),
         class: 'myclass anotherclass'
       }
     }
@@ -55,19 +51,48 @@ const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
   }
 }
 
+const getLabelFromNode = (n: graph.Node<CLM.TrainRound>): string => {
+  // First node is extractor + scorer
+  const round = n.data
+  const extractorText = round.extractorStep.textVariations
+    .map(tv => tv.text)
+    .join('\n    ')
+
+  const hashData = getHashDataFromTrainRound(round)
+  const scoreStepsText = round.scorerSteps
+    .map(ss => ss.labelAction!)
+    .join('\n    ')
+
+  const text = `Node ID: ${n.id.substr(0, 13)}
+Hash: ${n.hash.substr(0, 10)}
+Extractor Step:
+    ${extractorText}
+Hash Data: ${JSON.stringify(hashData, null, '  ')}`
+
+
+  return text
+}
+
+const mergeNodeData = (n1: graph.Node<CLM.TrainRound>, n2: graph.Node<CLM.TrainRound>): graph.Node<CLM.TrainRound> => {
+  // Add text variations from n2 to n1
+  n1.data.extractorStep.textVariations.push(...n2.data.extractorStep.textVariations)
+
+  return n1
+}
+
 const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
 
-// Each dialog as a linear graph of rounds
-const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], getNodes))
-const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g))
+// Multiple Graphs - Each graph represent single dialog
+const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], getNodes, mergeNodeData))
+const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g, getLabelFromNode))
 
+// Single Graph - Represent Multiple Dialogs
 const combinedDialogGraphs = graph.combineGraphs(separatedDialogGraphs)
-const combinedDialogsDagreGraph = createDagreGraphFromGraph(combinedDialogGraphs)
-console.log({ combinedDialogsDagreGraph })
+const combinedDialogsDagreGraph = createDagreGraphFromGraph(combinedDialogGraphs, getLabelFromNode)
 
-// Similar rounds are merged in to actual DAG
-const allDialogsGraph = graph.createDagFromNodes(dialogs, getNodes)
-const dagreDialogsGraph = createDagreGraphFromGraph(allDialogsGraph)
+// Combine all dialogs in to single graph - Requires merging of nodes based on hash
+const allDialogsGraph = graph.createDagFromNodes(dialogs, getNodes, mergeNodeData)
+const dagreDialogsGraph = createDagreGraphFromGraph(allDialogsGraph, getLabelFromNode)
 
 const graphProps: GraphProps = {
   graph: {
@@ -155,8 +180,6 @@ const graphProps: GraphProps = {
   }
 }
 
-console.log({ graphProps })
-
 const App: React.FC = () => {
   return (
     <div className="app">
@@ -181,7 +204,7 @@ const App: React.FC = () => {
 
       <h2>Combine Dialogs into Large Graph</h2>
       <div className="graph">
-        <DialogGraph graph={dagreDialogsGraph.graph} width={2700} />
+        <DialogGraph graph={dagreDialogsGraph.graph} width={7000} />
       </div>
 
       <h1>Static Dialog Graph</h1>

@@ -57,7 +57,8 @@ const App: React.FC<Props> = ({ graph, width = 380 }) => {
         render(svgGroup as any, g)
 
         // Center the graph
-        const xCenterOffset = ((svg as any).attr("width") - g.graph().width) / 2;
+        // const xCenterOffset = ((svg as any).attr("width") - g.graph().width) / 2;
+        const xCenterOffset = 20;
         svgGroup.attr("transform", `translate(${xCenterOffset}, ${20})`);
         svg.attr("height", g.graph().height + 40);
     }, [graph.edges, graph.nodes, guid])
