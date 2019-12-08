@@ -9,9 +9,9 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
   let nodeNumber = 0
   const nodes = dialog.rounds
     .map((round, i) => {
-      // Convert each round to nodes
+      // Convert each round to node
 
-      // First node is extrator + scorer
+      // First node is extractor + scorer
       const extractorText = round.extractorStep.textVariations
         .map(tv => tv.text)
         .join('\n    ')
@@ -28,9 +28,7 @@ Scorer Step:
     ${scoreStepsText}`
       }
 
-      const node = graph.getNode(data, data.text)
-
-      return node
+      return graph.getNode(data, '')//data.text)
     })
 
   return nodes
@@ -47,7 +45,7 @@ const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
     }
   ))
 
-  const edges: any[] = g.edges.map(e => [e.vertexA.id, e.vertexB.id])
+  const edges: [string, string][] = g.edges.map(e => [e.vertexA.id, e.vertexB.id])
 
   return {
     graph: {
@@ -58,16 +56,18 @@ const createDagreGraphFromGraph = (g: graph.Graph): GraphProps => {
 }
 
 const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
-const graphs = dialogs.map(d => {
-  const g = graph.createDagFromNodes(
-    [d],
-    getNodes,
-  )
-  return {
-    genericGraph: g,
-    dagreGraph: createDagreGraphFromGraph(g)
-  }
-})
+
+// Each dialog as a linear graph of rounds
+const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], getNodes))
+const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g))
+
+const combinedDialogGraphs = graph.combineGraphs(separatedDialogGraphs)
+const combinedDialogsDagreGraph = createDagreGraphFromGraph(combinedDialogGraphs)
+console.log({ combinedDialogsDagreGraph })
+
+// Similar rounds are merged in to actual DAG
+const allDialogsGraph = graph.createDagFromNodes(dialogs, getNodes)
+const dagreDialogsGraph = createDagreGraphFromGraph(allDialogsGraph)
 
 const graphProps: GraphProps = {
   graph: {
@@ -120,6 +120,15 @@ const graphProps: GraphProps = {
       }, {
         id: '15',
         label: { label: "Label - 15", class: "myclass anotherclass" },
+      }, {
+        id: '16',
+        label: { label: "Label - 16", class: "myclass anotherclass" },
+      }, {
+        id: '17',
+        label: { label: "Label - 17", class: "myclass anotherclass" },
+      }, {
+        id: '18',
+        label: { label: "Label - 18", class: "myclass anotherclass" },
       },
     ],
     edges: [
@@ -138,10 +147,15 @@ const graphProps: GraphProps = {
       ['0', '1'],
       ['3', '6'],
       ['10', '12'],
-      ['12','4'],
+      ['12', '4'],
+      ['15', '16'],
+      ['16', '17'],
+      ['17', '18'],
     ]
   }
 }
+
+console.log({ graphProps })
 
 const App: React.FC = () => {
   return (
@@ -150,18 +164,29 @@ const App: React.FC = () => {
         Graph Header
       </header>
 
-      <h2>Generated Dagre Graphs D3</h2>
+      <h2>Separate Graph per Dialog</h2>
+      <p>Each dialog is a graph</p>
       <div className="graphs">
-        {graphs.map((graph, i) =>
+        {separatedDialogDagreGraphs.map((graph, i) =>
           <div key={i} className="graph">
-            <DialogGraph graph={graph.dagreGraph.graph} />
+            <DialogGraph graph={graph.graph} />
           </div>
         )}
       </div>
 
+      <h2>Single Graph - Separate Dialogs</h2>
+      <div className="graph">
+        <DialogGraph graph={combinedDialogsDagreGraph.graph} width={2700} />
+      </div>
+
+      <h2>Combine Dialogs into Large Graph</h2>
+      <div className="graph">
+        <DialogGraph graph={dagreDialogsGraph.graph} width={2700} />
+      </div>
+
       <h1>Static Dialog Graph</h1>
       <div className="graph">
-        <DialogGraph graph={graphProps.graph} width={600} />
+        <DialogGraph graph={graphProps.graph} width={2000} />
       </div>
     </div>
   );

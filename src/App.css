@@ -15,12 +15,14 @@ body {
 }
 
 .graph {
-  border: 1px solid black;
+  border: 1px solid black; 
+  overflow-x: auto;
 }
-
 /* This sets the color for "TK" nodes to a light blue green. */
+
 g.anotherclass>rect {
-  fill: #b68569;
+  fill: #ffdac4;
+  stroke: rgb(61, 43, 9);
 }
 
 text {

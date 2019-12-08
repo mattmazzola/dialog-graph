@@ -3,7 +3,7 @@ import uuid from 'uuid/v4'
 
 export interface Node<T = any> {
     id: string
-    // Hash of whatever portion of the data we think is relevant for simple comparisons
+    // Hash of data, only supply subset of actual data if you want to make different nodes have common hash
     hash: string
     data: T
 }
@@ -36,14 +36,14 @@ export function createDagFromNodes<T>(
     const dialogsAsNodeLists: Node[][] = dialogs.map(d => getNodes(d))
     const dialogsAsGraphs: Graph[] = dialogsAsNodeLists.map(nodes => convertToGraph(nodes))
 
+    const initialGraph: Graph = {
+        nodes: [],
+        edges: [],
+    }
+
     // Build up nodes and edges by adding each sequence
     // If there is a matching node, add edge
     // Otherwise add node and edge
-    const initialGraph: Graph = {
-        nodes: [],
-        edges: []
-    }
-
     const dialogsGraph = dialogsAsGraphs.reduce<Graph>((graph, dialogGraph) => {
         graph.nodes.push(...dialogGraph.nodes)
         graph.edges.push(...dialogGraph.edges)
@@ -61,15 +61,18 @@ export function createDagFromNodes<T>(
  * Create edge for each node pointing to the previous node.
  */
 const convertToGraph = (nodes: Node[]): Graph => {
-    const edges = nodes.slice(1).map<Edge>((n, i) => {
-        const currentNode = n
-        const previousNode = nodes[i]
+    const edges = nodes
+        .slice(1)
+        .map<Edge>((n, i) => {
+            const currentNode = n
+            // Previous because of slice(1) and index on original nodes
+            const previousNode = nodes[i]
 
-        return {
-            vertexA: previousNode,
-            vertexB: currentNode,
-        }
-    })
+            return {
+                vertexA: previousNode,
+                vertexB: currentNode,
+            }
+        })
 
     return {
         nodes,
@@ -77,14 +80,32 @@ const convertToGraph = (nodes: Node[]): Graph => {
     }
 }
 
+export const combineGraphs = (graphs: Graph[]): Graph => {
+    const initialGraph: Graph = {
+        nodes: [],
+        edges: [],
+    }
+
+    // Build up nodes and edges by adding each sequence
+    // If there is a matching node, add edge
+    // Otherwise add node and edge
+    graphs.forEach(graph => {
+        initialGraph.nodes.push(...graph.nodes)
+        initialGraph.edges.push(...graph.edges)
+    })
+
+    return initialGraph
+}
+
 /**
- * Given any data, create hash of data to get unique signaure, then generate unique id.
+ * Given any data, create hash of data to get unique signature, then generate unique id.
  * 
  * @param data Node Data
  * @param prefix as
  */
 export function getNode<T>(data: T, prefix: string = ''): Node<T> {
-    const hash = `${prefix}`// `${prefix}-${sha256(JSON.stringify(data))}`
+    // const hash = `${prefix}`
+    const hash = `${prefix}-${sha256(JSON.stringify(data))}`
     const id = uuid()
     return {
         data,
