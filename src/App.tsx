@@ -73,71 +73,72 @@ const graphProps: GraphProps = {
   graph: {
     nodes: [
       {
-        id: 'name-0',
+        id: '0',
         label: { label: "Label - 0", class: "myclass anotherclass" },
       }, {
-        id: 'name-1',
+        id: '1',
         label: { label: "Label - 1", class: "myclass anotherclass" },
       }, {
-        id: 'name-2',
+        id: '2',
         label: { label: "Label - 2", class: "myclass anotherclass" },
       }, {
-        id: 'name-3',
+        id: '3',
         label: { label: "Label - 3", class: "myclass anotherclass" },
       }, {
-        id: 'name-4',
+        id: '4',
         label: { label: "Label - 4", class: "myclass anotherclass" },
       }, {
-        id: 'name-5',
+        id: '5',
         label: { label: "Label - 5", class: "myclass anotherclass" },
       }, {
-        id: 'name-6',
+        id: '6',
         label: { label: "Label - 6", class: "myclass anotherclass" },
       }, {
-        id: 'name-7',
+        id: '7',
         label: { label: "Label - 7", class: "myclass anotherclass" },
       }, {
-        id: 'name-8',
+        id: '8',
         label: { label: "Label - 8", class: "myclass anotherclass" },
       }, {
-        id: 'name-9',
+        id: '9',
         label: { label: "Label - 9", class: "myclass anotherclass" },
       }, {
-        id: 'name-10',
+        id: '10',
         label: { label: "Label - 10", class: "myclass anotherclass" },
       }, {
-        id: 'name-11',
+        id: '11',
         label: { label: "Label - 11", class: "myclass anotherclass" },
       }, {
-        id: 'name-12',
+        id: '12',
         label: { label: "Label - 12", class: "myclass anotherclass" },
       }, {
-        id: 'name-13',
+        id: '13',
         label: { label: "Label - 13", class: "myclass anotherclass" },
       }, {
-        id: 'name-14',
+        id: '14',
         label: { label: "Label - 14", class: "myclass anotherclass" },
       }, {
-        id: 'name-15',
+        id: '15',
         label: { label: "Label - 15", class: "myclass anotherclass" },
       },
     ],
     edges: [
-      ['name-2', 'name-3'],
-      ['name-1', 'name-2'],
-      ['name-6', 'name-7'],
-      ['name-5', 'name-6'],
-      ['name-9', 'name-10'],
-      ['name-8', 'name-9'],
-      ['name-11', 'name-12'],
-      ['name-8', 'name-11'],
-      ['name-5', 'name-8'],
-      ['name-1', 'name-5'],
-      ['name-13', 'name-14'],
-      ['name-1', 'name-13'],
-      ['name-0', 'name-1'],
-      ['name-3', 'name-6'],
-      ['name-10', 'name-12'],
+      ['2', '3'],
+      ['1', '2'],
+      ['6', '7'],
+      ['5', '6'],
+      ['9', '10'],
+      ['8', '9'],
+      ['11', '12'],
+      ['8', '11'],
+      ['5', '8'],
+      ['1', '5'],
+      ['13', '14'],
+      ['1', '13'],
+      ['0', '1'],
+      ['3', '6'],
+      ['10', '12'],
+      ['12','4'],
     ]
   }
 }
