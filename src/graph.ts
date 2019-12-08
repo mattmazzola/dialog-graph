@@ -3,7 +3,7 @@ import uuid from 'uuid/v4'
 
 export interface Node<T = any> {
     id: string
-    // Hash of whatever portion of the data we think is relavent for simple comparisons
+    // Hash of whatever portion of the data we think is relevant for simple comparisons
     hash: string
     data: T
 }
@@ -38,7 +38,7 @@ export function createDagFromNodes<T>(
 
     // Build up nodes and edges by adding each sequence
     // If there is a matching node, add edge
-    // Otherwse ade node and edge
+    // Otherwise add node and edge
     const initialGraph: Graph = {
         nodes: [],
         edges: []

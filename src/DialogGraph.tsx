@@ -24,7 +24,7 @@ const App: React.FC<Props> = ({ graph, width = 380 }) => {
             .setGraph({})
             .setDefaultEdgeLabel(() => ({}))
 
-        // Here we"re setting nodeclass, which is used by our custom drawNodes function below.
+        // Here we're setting nodeclass, which is used by our custom drawNodes function below.
         for (const node of graph.nodes) {
             g.setNode(node.id, node.label)
         }
