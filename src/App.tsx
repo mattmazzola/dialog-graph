@@ -5,7 +5,6 @@ import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
 import DialogGraph, { Props as GraphProps } from './DialogGraph'
 
-
 const getHashDataFromTrainRound = (round: CLM.TrainRound): object => {
   return {
     filledEntityIds: round.scorerSteps[0].input.filledEntities.map(fe => fe.entityId),
@@ -56,14 +55,33 @@ const getLabelFromNode = (n: graph.Node<CLM.TrainRound>): string => {
   const round = n.data
   const extractorText = round.extractorStep.textVariations
     .map(tv => tv.text)
-    .join('\n    ')
+
+  const defaultEntityMap = new Map<string, string>()
+
+  const firstFilledEntities = round.scorerSteps[0].input.filledEntities
+    ; (clPizzaModel.entities as any as CLM.EntityBase[]).forEach(e => {
+
+      const filledEntity = firstFilledEntities
+        .find(fe => fe.entityId === e.entityId)
+
+      const filledEntityValues = filledEntity
+        ? `[${filledEntity.values.map(v => v.displayText).join(', ')}]`
+        : `$${e.entityName}`
+
+      defaultEntityMap.set(e.entityId, filledEntityValues)
+    })
+  const scorerStepsText = round.scorerSteps
+    .map(ss => (clPizzaModel.actions as any as CLM.ActionBase[]).find(a => a.actionId === ss.labelAction)!)
+    .map(a => CLM.ActionBase.GetPayload(a, defaultEntityMap))
 
   const hashData = getHashDataFromTrainRound(round)
 
   const text = `Node ID: ${n.id.substr(0, 13)}
+-
+${extractorText.map(t => `User: ${t}`).join('\n')}
+${scorerStepsText.map(t => `Bot: ${t}`).join("\n")}
+-
 Hash: ${n.hash.substr(0, 10)}
-Extractor Step:
-    ${extractorText}
 Hash Data: ${JSON.stringify(hashData, null, '  ')}`
 
 
@@ -206,18 +224,18 @@ const App: React.FC = () => {
 
       <h2>Combine Dialogs into Large Graph</h2>
       <div className="graph">
-        <DialogGraph graph={dagreDialogsGraph.graph} width={2000} />
+        <DialogGraph graph={dagreDialogsGraph.graph} width={1700} />
       </div>
 
       <h1>Static Dialog Graph</h1>
       <div className="graph">
-        <DialogGraph graph={graphProps.graph} width={2000} />
+        <DialogGraph graph={graphProps.graph} width={1700} />
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
 
 
 
