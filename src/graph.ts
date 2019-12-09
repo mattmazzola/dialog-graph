@@ -43,36 +43,80 @@ export function createDagFromNodes<T>(
         edges: [],
     }
 
+    if (dialogsAsGraphs.length === 1) {
+        mergedGraph.nodes = dialogsAsGraphs[0].nodes
+        mergedGraph.edges = dialogsAsGraphs[0].edges
+    }
+    else if (dialogsAsGraphs.length >= 2) {
+        const [firstGraph, ...otherGraphs] = dialogsAsGraphs
+        // Consolidate any redundant nodes in first graph
+        const nodes: Node[] = []
+        firstGraph.nodes.forEach((node, i) => {
+            if (i >= 1) {
+                // If any node before this node is the same
+                const matchingNode = firstGraph.nodes
+                    .slice(0, i)
+                    .find(n => n.hash === node.hash)
 
-    // Add each graph to existing graph
-    for (const dialogGraph of dialogsAsGraphs) {
+                if (matchingNode) {
+                    // Rewrite all edges TO node to matching node
+                    firstGraph.edges
+                        .filter(e => e.vertexB.id === node.id)
+                        .forEach(e => e.vertexB = matchingNode)
 
-        // Build up nodes and edges by adding each sequence
-        // If there is a matching node, add edge
-        for (const node of dialogGraph.nodes) {
-            const matchingNode = mergedGraph.nodes.find(n => n.hash === node.hash)
+                    // Rewrite all edges FROM the current node to come FROM the matching node
+                    firstGraph.edges
+                        .filter(e => e.vertexA.id === node.id)
+                        .forEach(e => e.vertexA = matchingNode)
 
-            if (matchingNode) {
-                // Rewrite all edges TO the current node to the matching node
-                dialogGraph.edges
-                    .filter(e => e.vertexB.id === node.id)
-                    .forEach(e => e.vertexB = matchingNode)
-
-                // Rewrite all edges FROM the current node to come FROM the matching node
-                dialogGraph.edges
-                    .filter(e => e.vertexA.id === node.id)
-                    .forEach(e => e.vertexA = matchingNode)
-
-                // Remove the matching node from original graph since all edges now use existing graph
-                dialogGraph.nodes = dialogGraph.nodes.filter(n => n.id !== matchingNode.id)
-
-                // Merge data from node into matching/existing node
-                 mergeNodeData(matchingNode, node)
+                    // Merge data from node into matching/existing node
+                    mergeNodeData(matchingNode, node)
+                }
+                else {
+                    nodes.push(node)
+                }
             }
-        }
+            else {
+                nodes.push(node)
+            }
+        })
 
-        mergedGraph.nodes.push(...dialogGraph.nodes)
-        mergedGraph.edges.push(...dialogGraph.edges)
+        mergedGraph.nodes = nodes
+        mergedGraph.edges = firstGraph.edges
+
+        // Add each graph to existing graph
+        for (const dialogGraph of otherGraphs) {
+            console.log(`Merging new dialog`)
+            // Build up nodes and edges by adding each sequence
+            // If there is a matching node, add edge
+            for (const node of dialogGraph.nodes) {
+                const matchingNode = mergedGraph.nodes.find(n => n.hash === node.hash)
+
+                console.log(`Current Node: `, node.hash, node.data.extractorStep.textVariations.map((tv: any) => tv.text), node, JSON.parse(JSON.stringify(mergedGraph)))
+                if (matchingNode) {
+                    console.log(`Merge with node: `, matchingNode.hash, matchingNode.data.extractorStep.textVariations.map((tv: any) => tv.text), JSON.parse(JSON.stringify(matchingNode)))
+                    // Rewrite all edges TO the current node to the matching node
+                    dialogGraph.edges
+                        .filter(e => e.vertexB.id === node.id)
+                        .forEach(e => e.vertexB = matchingNode)
+
+                    // Rewrite all edges FROM the current node to come FROM the matching node
+                    dialogGraph.edges
+                        .filter(e => e.vertexA.id === node.id)
+                        .forEach(e => e.vertexA = matchingNode)
+
+                    // Remove the matching node from original graph since all edges now use existing graph
+                    dialogGraph.nodes = dialogGraph.nodes.filter(n => n.hash !== matchingNode.hash)
+
+                    // Merge data from node into matching/existing node
+                    mergeNodeData(matchingNode, node)
+                }
+            }
+
+            mergedGraph.nodes.push(...dialogGraph.nodes)
+            mergedGraph.edges.push(...dialogGraph.edges)
+            console.log(`Add nodes and edges from dialog graph to merged graph `, JSON.parse(JSON.stringify(mergedGraph)))
+        }
     }
 
     return mergedGraph

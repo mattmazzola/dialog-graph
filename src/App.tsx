@@ -22,7 +22,7 @@ const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
       const hashData = getHashDataFromTrainRound(round)
       const node = graph.getNode(round, hashData)
 
-      console.log(`Node: `, round.extractorStep.textVariations.map(tv => tv.text), hashData, node)
+      // console.log(`Node: `, round.extractorStep.textVariations.map(tv => tv.text), hashData, node)
 
       return node
     })
@@ -59,9 +59,6 @@ const getLabelFromNode = (n: graph.Node<CLM.TrainRound>): string => {
     .join('\n    ')
 
   const hashData = getHashDataFromTrainRound(round)
-  const scoreStepsText = round.scorerSteps
-    .map(ss => ss.labelAction!)
-    .join('\n    ')
 
   const text = `Node ID: ${n.id.substr(0, 13)}
 Hash: ${n.hash.substr(0, 10)}
@@ -90,6 +87,11 @@ const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGra
 const combinedDialogGraphs = graph.combineGraphs(separatedDialogGraphs)
 const combinedDialogsDagreGraph = createDagreGraphFromGraph(combinedDialogGraphs, getLabelFromNode)
 
+console.log(`
+  ####################################
+  ##### Start of Merging Graphs ######
+  ####################################
+`)
 // Combine all dialogs in to single graph - Requires merging of nodes based on hash
 const allDialogsGraph = graph.createDagFromNodes(dialogs, getNodes, mergeNodeData)
 const dagreDialogsGraph = createDagreGraphFromGraph(allDialogsGraph, getLabelFromNode)
@@ -187,7 +189,7 @@ const App: React.FC = () => {
         Graph Header
       </header>
 
-      <h2>Separate Graph per Dialog</h2>
+      {/* <h2>Separate Graph per Dialog</h2>
       <p>Each dialog is a graph</p>
       <div className="graphs">
         {separatedDialogDagreGraphs.map((graph, i) =>
@@ -195,7 +197,7 @@ const App: React.FC = () => {
             <DialogGraph graph={graph.graph} />
           </div>
         )}
-      </div>
+      </div> */}
 
       <h2>Single Graph - Separate Dialogs</h2>
       <div className="graph">
@@ -204,7 +206,7 @@ const App: React.FC = () => {
 
       <h2>Combine Dialogs into Large Graph</h2>
       <div className="graph">
-        <DialogGraph graph={dagreDialogsGraph.graph} width={7000} />
+        <DialogGraph graph={dagreDialogsGraph.graph} width={2000} />
       </div>
 
       <h1>Static Dialog Graph</h1>
