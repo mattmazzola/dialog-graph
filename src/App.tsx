@@ -1,33 +1,10 @@
 import React from 'react'
 import './App.css'
 import * as graph from './graph'
+import * as clGraph from './clGraph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
-import DialogGraph, { Props as GraphProps } from './DialogGraph'
-
-const getHashDataFromTrainRound = (round: CLM.TrainRound): object => {
-  return {
-    filledEntityIds: round.scorerSteps[0].input.filledEntities.map(fe => fe.entityId),
-    scorerActionsIds: round.scorerSteps.flatMap(ss => ss.labelAction!),
-  }
-}
-
-const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
-  const nodes = dialog.rounds
-    .map((round, i) => {
-      // Convert each round to node
-
-      // Extract data which makes node unique to object to be hashed
-      const hashData = getHashDataFromTrainRound(round)
-      const node = graph.getNode(round, hashData)
-
-      // console.log(`Node: `, round.extractorStep.textVariations.map(tv => tv.text), hashData, node)
-
-      return node
-    })
-
-  return nodes
-}
+import DialogGraph, { Props as GraphProps } from './DagreGraph'
 
 const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => string): GraphProps => {
   const nodes = g.nodes.map(n => (
@@ -50,55 +27,11 @@ const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => 
   }
 }
 
-const getLabelFromNode = (n: graph.Node<CLM.TrainRound>): string => {
-  // First node is extractor + scorer
-  const round = n.data
-  const extractorText = round.extractorStep.textVariations
-    .map(tv => tv.text)
-
-  const defaultEntityMap = new Map<string, string>()
-
-  const firstFilledEntities = round.scorerSteps[0].input.filledEntities
-    ; (clPizzaModel.entities as any as CLM.EntityBase[]).forEach(e => {
-
-      const filledEntity = firstFilledEntities
-        .find(fe => fe.entityId === e.entityId)
-
-      const filledEntityValues = filledEntity
-        ? `[${filledEntity.values.map(v => v.displayText).join(', ')}]`
-        : `$${e.entityName}`
-
-      defaultEntityMap.set(e.entityId, filledEntityValues)
-    })
-  const scorerStepsText = round.scorerSteps
-    .map(ss => (clPizzaModel.actions as any as CLM.ActionBase[]).find(a => a.actionId === ss.labelAction)!)
-    .map(a => CLM.ActionBase.GetPayload(a, defaultEntityMap))
-
-  const hashData = getHashDataFromTrainRound(round)
-
-  const text = `Node ID: ${n.id.substr(0, 13)}
--
-${extractorText.map(t => `User: ${t}`).join('\n')}
-${scorerStepsText.map(t => `Bot: ${t}`).join("\n")}
--
-Hash: ${n.hash.substr(0, 10)}
-Hash Data: ${JSON.stringify(hashData, null, '  ')}`
-
-
-  return text
-}
-
-const mergeNodeData = (n1: graph.Node<CLM.TrainRound>, n2: graph.Node<CLM.TrainRound>): graph.Node<CLM.TrainRound> => {
-  // Add text variations from n2 to n1
-  n1.data.extractorStep.textVariations.push(...n2.data.extractorStep.textVariations)
-
-  return n1
-}
-
+const getLabelFromNode = clGraph.getLabelFromNode(clPizzaModel)
 const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
 
 // Multiple Graphs - Each graph represent single dialog
-const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], getNodes, mergeNodeData))
+const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], clGraph.getNodes, clGraph.mergeNodeData))
 const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g, getLabelFromNode))
 
 // Single Graph - Represent Multiple Dialogs
@@ -111,7 +44,7 @@ console.log(`
   ####################################
 `)
 // Combine all dialogs in to single graph - Requires merging of nodes based on hash
-const allDialogsGraph = graph.createDagFromNodes(dialogs, getNodes, mergeNodeData)
+const allDialogsGraph = graph.createDagFromNodes(dialogs, clGraph.getNodes, clGraph.mergeNodeData)
 const dagreDialogsGraph = createDagreGraphFromGraph(allDialogsGraph, getLabelFromNode)
 
 const graphProps: GraphProps = {

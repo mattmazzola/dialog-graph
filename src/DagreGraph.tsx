@@ -1,5 +1,4 @@
-import React from 'react';
-import './App.css';
+import React from 'react'
 import dagreD3 from 'dagre-d3'
 import * as d3 from 'd3'
 import uuid from 'uuid/v4'
@@ -12,11 +11,12 @@ export type Props = {
         }[],
         edges: [string, string][]
     },
-    width?: number
+    width?: number,
+    isZoomEnabled?: boolean,
 }
 
-const App: React.FC<Props> = ({ graph, width = 380 }) => {
-    const [guid] = React.useState(() => uuid().substring(0, 4))
+const Component: React.FC<Props> = ({ graph, width = 380, isZoomEnabled }) => {
+    const guid = React.useMemo(() => uuid().substring(0, 4), [])
 
     React.useEffect(() => {
         // Create the input graph
@@ -30,9 +30,9 @@ const App: React.FC<Props> = ({ graph, width = 380 }) => {
         }
 
         g.nodes().forEach((v) => {
-            const node = g.node(v);
+            const node = g.node(v)
             // Round the corners of the nodes
-            node.rx = node.ry = 5;
+            node.rx = node.ry = 5
         })
 
         // Set up edges, no special attributes.
@@ -44,12 +44,14 @@ const App: React.FC<Props> = ({ graph, width = 380 }) => {
         const svg = d3.select(`svg#svg${guid}`)
         const svgGroup = svg.append("g")
 
-        // // Set up zoom support
-        // const zoom = d3.zoom()
-        //     .on("zoom", () => {
-        //         svgGroup.attr("transform", d3.event.transform)
-        //     })
-        // svg.call(zoom as any);
+        if (isZoomEnabled) {
+            // Set up zoom support
+            const zoom = d3.zoom()
+                .on("zoom", () => {
+                    svgGroup.attr("transform", d3.event.transform)
+                })
+            svg.call(zoom as any)
+        }
 
         // Create the renderer
         const render = new dagreD3.render()
@@ -58,14 +60,14 @@ const App: React.FC<Props> = ({ graph, width = 380 }) => {
 
         // Center the graph
         // const xCenterOffset = ((svg as any).attr("width") - g.graph().width) / 2;
-        const xCenterOffset = 20;
-        svgGroup.attr("transform", `translate(${xCenterOffset}, ${20})`);
-        svg.attr("height", g.graph().height + 40);
+        const xCenterOffset = 20
+        svgGroup.attr("transform", `translate(${xCenterOffset}, ${20})`)
+        svg.attr("height", g.graph().height + 40)
     }, [graph.edges, graph.nodes, guid])
 
     return (
         <svg id={`svg${guid}`} width={width}></svg>
-    );
+    )
 }
 
-export default App;
+export default Component
