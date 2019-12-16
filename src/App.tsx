@@ -5,6 +5,14 @@ import * as clGraph from './clGraph'
 import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
 import DialogGraph, { Props as GraphProps } from './DagreGraph'
+import { Graph } from 'react-d3-graph'
+
+const NodeView: React.FC<{ node: any }> = ({ node }) => {
+  return <div>
+    <h2>Node View Component</h2>
+    <p>Label: {node.label}</p>
+  </div>
+}
 
 const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => string): GraphProps => {
   const nodes = g.nodes.map(n => (
@@ -13,7 +21,7 @@ const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => 
       label: {
         label: getLabel(n),
         class: 'myclass anotherclass'
-      }
+      },
     }
   ))
 
@@ -32,7 +40,7 @@ const dialogs = clPizzaModel.trainDialogs as any as CLM.TrainDialog[]
 
 // Multiple Graphs - Each graph represent single dialog
 const separatedDialogGraphs = dialogs.map(d => graph.createDagFromNodes([d], clGraph.getNodes, clGraph.mergeNodeData))
-const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g, getLabelFromNode))
+// const separatedDialogDagreGraphs = separatedDialogGraphs.map(g => createDagreGraphFromGraph(g, getLabelFromNode))
 
 // Single Graph - Represent Multiple Dialogs
 const combinedDialogGraphs = graph.combineGraphs(separatedDialogGraphs)
@@ -133,6 +141,67 @@ const graphProps: GraphProps = {
   }
 }
 
+// graph payload (with minimalist structure)
+const data = {
+  nodes: [
+    {
+      id: "Harry",
+    }, {
+      id: "Sally",
+    }, {
+      id: "Alice",
+    }
+  ],
+  links: [
+    { source: "Harry", target: "Sally" },
+    { source: "Harry", target: "Alice" }
+  ],
+}
+
+// the graph configuration, you only need to pass down properties
+// that you want to override, otherwise default ones will be used
+const myConfig = {
+  automaticRearrangeAfterDropNode: false,
+  collapsible: false,
+  height: 400,
+  highlightDegree: 1,
+  highlightOpacity: 0.2,
+  linkHighlightBehavior: true,
+  maxZoom: 8,
+  minZoom: 0.1,
+  nodeHighlightBehavior: true,
+  panAndZoom: false,
+  staticGraph: false,
+  width: 800,
+  node: {
+    color: "#d3d3d3",
+    fontColor: "black",
+    fontSize: 12,
+    fontWeight: "normal",
+    highlightColor: "red",
+    highlightFontSize: 12,
+    highlightFontWeight: "bold",
+    highlightStrokeColor: "SAME",
+    highlightStrokeWidth: 1.5,
+    labelProperty: "name",
+    mouseCursor: "pointer",
+    opacity: 1,
+    renderLabel: false,
+    size: 700,
+    strokeColor: "none",
+    strokeWidth: 1.5,
+    svg: "",
+    viewGenerator: (node: any) => <NodeView node={node} />,
+  },
+  link: {
+    color: "#d3d3d3",
+    opacity: 1,
+    semanticStrokeWidth: false,
+    strokeWidth: 4,
+    highlightColor: "blue",
+  },
+}
+
 const App: React.FC = () => {
   return (
     <div className="app">
@@ -158,6 +227,15 @@ const App: React.FC = () => {
       <h2>Combine Dialogs into Large Graph</h2>
       <div className="graph">
         <DialogGraph graph={dagreDialogsGraph.graph} width={1700} />
+      </div>
+
+      <h2>React-D3-Graph</h2>
+      <div className="graph">
+        <Graph
+          id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
+          data={data}
+          config={myConfig}
+        />
       </div>
 
       <h1>Static Dialog Graph</h1>

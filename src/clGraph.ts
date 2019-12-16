@@ -18,7 +18,6 @@ export const getNodes = (dialog: CLM.TrainDialog): graph.Node[] => {
             const node = graph.getNode(round, hashData)
 
             // console.log(`Node: `, round.extractorStep.textVariations.map(tv => tv.text), hashData, node)
-
             return node
         })
 
