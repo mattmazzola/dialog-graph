@@ -16,9 +16,10 @@ body {
 }
 
 .graph {
-  border: 1px solid black; 
+  border: 1px solid black;
   overflow-x: auto;
 }
+
 /* This sets the color for "TK" nodes to a light blue green. */
 
 g.anotherclass>rect {
@@ -51,4 +52,45 @@ text {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border: 1px solid grey;
+}
+
+/* From Demo */
+
+/* --- Shape for the nodes --- */
+
+.person-node {
+  width: 100%;
+  height: 200%;
+  border-radius: 5% 5% 5% 5%;
+  box-sizing: border-box;
+}
+
+.person-node.male {
+  background-color: lightblue;
+  box-shadow: 25px 15px cadetblue;
+}
+
+.person-node.female {
+  background-color: pink;
+  box-shadow: 25px 15px palevioletred;
+}
+
+/* --- Other styles for node content --- */
+
+.person-node .name {
+  padding: 5%;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.person-node .icon-bar {
+  width: 20%;
+  margin-right: 5%;
+}
+
+.person-node .icon-bar>.icon {
+  width: 80%;
+  height: 30%;
 }

@@ -6,13 +6,7 @@ import clPizzaModel from './demoPizzaOrder.json'
 import * as CLM from '@conversationlearner/models'
 import DialogGraph, { Props as GraphProps } from './DagreGraph'
 import { Graph } from 'react-d3-graph'
-
-const NodeView: React.FC<{ node: any }> = ({ node }) => {
-  return <div>
-    <h2>Node View Component</h2>
-    <p>Label: {node.label}</p>
-  </div>
-}
+import CustomNode from './Node'
 
 const createDagreGraphFromGraph = (g: graph.Graph, getLabel: (n: graph.Node) => string): GraphProps => {
   const nodes = g.nodes.map(n => (
@@ -143,23 +137,123 @@ const graphProps: GraphProps = {
 
 // graph payload (with minimalist structure)
 const data = {
+  links: [
+    {
+      source: 0,
+      target: 2,
+    },
+    {
+      source: 0,
+      target: 3,
+    },
+    {
+      source: 0,
+      target: 4,
+    },
+    {
+      source: 3,
+      target: 4,
+    },
+  ],
   nodes: [
     {
-      id: "Harry",
-    }, {
-      id: "Sally",
-    }, {
-      id: "Alice",
-    }
-  ],
-  links: [
-    { source: "Harry", target: "Sally" },
-    { source: "Harry", target: "Alice" }
+      id: 0,
+      name: "Mary",
+      gender: "female",
+      hasCar: false,
+      hasBike: false,
+    },
+    {
+      id: 2,
+      name: "Roy",
+      gender: "male",
+      hasCar: false,
+      hasBike: true,
+    },
+    {
+      id: 3,
+      name: "Frank",
+      gender: "male",
+      hasCar: true,
+      hasBike: true,
+    },
+    {
+      id: 4,
+      name: "Melanie",
+      gender: "female",
+      hasCar: true,
+      hasBike: false,
+    },
   ],
 }
 
 // the graph configuration, you only need to pass down properties
 // that you want to override, otherwise default ones will be used
+const defaultConfig = {
+  automaticRearrangeAfterDropNode: false,
+  collapsible: false,
+  directed: true,
+  focusAnimationDuration: 0.75,
+  focusZoom: 1,
+  height: 800,
+  highlightDegree: 1,
+  highlightOpacity: 1,
+  linkHighlightBehavior: true,
+  maxZoom: 8,
+  minZoom: 0.1,
+  nodeHighlightBehavior: true,
+  panAndZoom: false,
+  staticGraph: false,
+  staticGraphWithDragAndDrop: false,
+  width: 1200,
+  d3: {
+      alphaTarget: 0.25,
+      gravity: 50,
+      linkLength: 400,
+      linkStrength: 0.25,
+  },
+  node: {
+      color: "#d3d3d3",
+      fontColor: "black",
+      fontSize: 8,
+      fontWeight: "normal",
+      highlightColor: "SAME",
+      highlightFontSize: 8,
+      highlightFontWeight: "normal",
+      highlightStrokeColor: "SAME",
+      highlightStrokeWidth: "SAME",
+      labelProperty: "id",
+      mouseCursor: "pointer",
+      opacity: 1,
+      renderLabel: false,
+      size: 1500,
+      strokeColor: "none",
+      strokeWidth: 1.5,
+      svg: "",
+      symbolType: "circle",
+      viewGenerator: (node: any) => <CustomNode person={node} />,
+  },
+  link: {
+      color: "#d3d3d3",
+      fontColor: "black",
+      fontSize: 8,
+      fontWeight: "normal",
+      // FIXME: highlightColor default should be "SAME", breaking change
+      highlightColor: "#d3d3d3",
+      highlightFontSize: 8,
+      highlightFontWeight: "normal",
+      labelProperty: "name",
+      mouseCursor: "pointer",
+      opacity: 1,
+      renderLabel: false,
+      semanticStrokeWidth: false,
+      strokeWidth: 1.5,
+      markerHeight: 6,
+      markerWidth: 6,
+      type: "STRAIGHT",
+  },
+}
+
 const myConfig = {
   automaticRearrangeAfterDropNode: false,
   collapsible: false,
@@ -172,6 +266,7 @@ const myConfig = {
   nodeHighlightBehavior: true,
   panAndZoom: false,
   staticGraph: false,
+  staticGraphWithDragAndDrop: true,
   width: 800,
   node: {
     color: "#d3d3d3",
@@ -191,7 +286,8 @@ const myConfig = {
     strokeColor: "none",
     strokeWidth: 1.5,
     svg: "",
-    viewGenerator: (node: any) => <NodeView node={node} />,
+    symbolType: "circle",
+    viewGenerator: (node: any) => <CustomNode person={node} />,
   },
   link: {
     color: "#d3d3d3",
@@ -208,6 +304,15 @@ const App: React.FC = () => {
       <header>
         Graph Header
       </header>
+
+      <h2>React-D3-Graph</h2>
+      <div className="graph">
+        <Graph
+          id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
+          data={data}
+          config={defaultConfig}
+        />
+      </div>
 
       {/* <h2>Separate Graph per Dialog</h2>
       <p>Each dialog is a graph</p>
@@ -229,19 +334,11 @@ const App: React.FC = () => {
         <DialogGraph graph={dagreDialogsGraph.graph} width={1700} />
       </div>
 
-      <h2>React-D3-Graph</h2>
-      <div className="graph">
-        <Graph
-          id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
-          data={data}
-          config={myConfig}
-        />
-      </div>
-
       <h1>Static Dialog Graph</h1>
       <div className="graph">
         <DialogGraph graph={graphProps.graph} width={1700} />
       </div>
+
     </div>
   )
 }
