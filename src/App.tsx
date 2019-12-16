@@ -187,6 +187,10 @@ const data = {
   ],
 }
 
+// Issue about square size
+// https://github.com/danielcaldas/react-d3-graph/issues/171
+
+
 // the graph configuration, you only need to pass down properties
 // that you want to override, otherwise default ones will be used
 const defaultConfig = {
