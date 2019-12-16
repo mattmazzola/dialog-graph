@@ -63,7 +63,7 @@ const Component: React.FC<Props> = ({ graph, width = 380, isZoomEnabled }) => {
         const xCenterOffset = 20
         svgGroup.attr("transform", `translate(${xCenterOffset}, ${20})`)
         svg.attr("height", g.graph().height + 40)
-    }, [graph.edges, graph.nodes, guid])
+    }, [graph.edges, graph.nodes, guid, isZoomEnabled])
 
     return (
         <svg id={`svg${guid}`} width={width}></svg>
