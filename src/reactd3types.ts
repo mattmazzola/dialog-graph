@@ -1,10 +1,12 @@
-export interface IData {
-    nodes: INode[],
+export interface IData<T> {
+    nodes: INode<T>[],
     links: ILink[],
 }
 
-export interface INode {
+export type INode<T> = {
     id: string
+    hash: string
+    data: T
 }
 
 export interface ILink {

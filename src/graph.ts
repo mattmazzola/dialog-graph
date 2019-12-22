@@ -13,8 +13,8 @@ export interface Edge {
     vertexB: Node
 }
 
-export interface Graph {
-    nodes: Node[]
+export interface Graph<T = any> {
+    nodes: Node<T>[]
     edges: Edge[]
 }
 

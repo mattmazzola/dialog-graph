@@ -1,11 +1,11 @@
 import React from 'react'
 
 const Component: React.FC<{ person: any }> = ({ person }) => {
-    const isMale = person.gender === "male"
+    const isMale = person.data.gender === "male"
 
     return (
         <div className={`person-node ${isMale ? "male" : "female"}`}>
-            <div className="name">{person.name}</div>
+            <div className="name">{person.data.name}</div>
 
             <div>
                 <div>
